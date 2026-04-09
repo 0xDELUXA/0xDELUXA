@@ -1,0 +1,106 @@
+name: Update Contributions
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch contributions and update README
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_USERNAME: 0xDELUXA
+        run: |
+          python3 << 'EOF'
+          import urllib.request
+          import urllib.parse
+          import json
+          import re
+          import os
+
+          username = os.environ["GH_USERNAME"]
+          token = os.environ["GH_TOKEN"]
+
+          def gh_request(url):
+              req = urllib.request.Request(url)
+              req.add_header("Authorization", f"Bearer {token}")
+              req.add_header("Accept", "application/vnd.github+json")
+              req.add_header("X-GitHub-Api-Version", "2022-11-28")
+              req.add_header("User-Agent", "readme-updater")
+              with urllib.request.urlopen(req) as res:
+                  return json.loads(res.read().decode())
+
+          # Search for merged PRs
+          query = urllib.parse.quote(f"type:pr state:merged author:{username}")
+          url = f"https://api.github.com/search/issues?q={query}&per_page=100&sort=updated"
+          data = gh_request(url)
+          items = data.get("items", [])
+
+          # Also fetch closed PRs from pytorch/pytorch (landed via pytorchmergebot)
+          query_closed = urllib.parse.quote(f"type:pr state:closed author:{username} repo:pytorch/pytorch")
+          url_closed = f"https://api.github.com/search/issues?q={query_closed}&per_page=100&sort=updated"
+          data_closed = gh_request(url_closed)
+          closed_items = data_closed.get("items", [])
+
+          # Merge, avoiding duplicates by PR url
+          seen_urls = {pr["html_url"] for pr in items}
+          for pr in closed_items:
+              if pr["html_url"] not in seen_urls:
+                  items.append(pr)
+                  seen_urls.add(pr["html_url"])
+
+          # Group by repo, keep top 3 per repo
+          repos = {}
+          for pr in items:
+              repo = pr["repository_url"].replace("https://api.github.com/repos/", "")
+              # Skip the profile repo itself
+              if repo == f"{username}/{username}":
+                  continue
+              if repo not in repos:
+                  repos[repo] = []
+              if len(repos[repo]) < 3:
+                  repos[repo].append({
+                      "title": pr["title"],
+                      "url": pr["html_url"]
+                  })
+
+          # Build markdown
+          lines = []
+          for repo, prs in sorted(repos.items()):
+              lines.append(f"### [{repo}](https://github.com/{repo})")
+              for pr in prs:
+                  lines.append(f"- [{pr['title']}]({pr['url']})")
+              lines.append("")
+
+          block = "\n".join(lines).strip()
+          new_section = f"<!-- CONTRIBUTIONS:START -->\n{block}\n<!-- CONTRIBUTIONS:END -->"
+
+          with open("README.md", "r") as f:
+              content = f.read()
+
+          updated = re.sub(
+              r"<!-- CONTRIBUTIONS:START -->.*?<!-- CONTRIBUTIONS:END -->",
+              new_section,
+              content,
+              flags=re.DOTALL
+          )
+
+          with open("README.md", "w") as f:
+              f.write(updated)
+
+          print("README updated successfully!")
+          EOF
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "chore: update contributions [skip ci]"
+          git push
