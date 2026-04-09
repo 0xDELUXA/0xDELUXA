@@ -1,13 +1,12 @@
-# Hi, I'm 0xDELUXA
+<h1 align="center">DELUXA</h1>
 
-<!-- Feel free to customize this section -->
+> Systems-level contributor focused on PyTorch, AMD ROCm on Windows, and ML infrastructure.
 
-## Open Source Contributions
-
-> Auto-updated via GitHub Actions
+## Notable Contributions
 
 <!-- CONTRIBUTIONS:START -->
 <!-- CONTRIBUTIONS:END -->
 
 ---
-<sub>Last updated by GitHub Actions</sub>
+
+<sub>Auto-updated via GitHub Actions</sub>

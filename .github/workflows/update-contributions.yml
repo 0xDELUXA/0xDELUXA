@@ -27,59 +27,96 @@ jobs:
           username = os.environ["GH_USERNAME"]
           token = os.environ["GH_TOKEN"]
 
-          def gh_request(url):
+          def gh_request(url, accept=None):
               req = urllib.request.Request(url)
               req.add_header("Authorization", f"Bearer {token}")
-              req.add_header("Accept", "application/vnd.github+json")
+              req.add_header("Accept", accept or "application/vnd.github+json")
               req.add_header("X-GitHub-Api-Version", "2022-11-28")
               req.add_header("User-Agent", "readme-updater")
               with urllib.request.urlopen(req) as res:
                   return json.loads(res.read().decode())
 
-          # Search for merged PRs
-          query = urllib.parse.quote(f"type:pr state:merged author:{username}")
-          url = f"https://api.github.com/search/issues?q={query}&per_page=100&sort=updated"
-          data = gh_request(url)
-          items = data.get("items", [])
-
-          # Also fetch closed PRs from pytorch/pytorch (landed via pytorchmergebot)
-          query_closed = urllib.parse.quote(f"type:pr state:closed author:{username} repo:pytorch/pytorch")
-          url_closed = f"https://api.github.com/search/issues?q={query_closed}&per_page=100&sort=updated"
-          data_closed = gh_request(url_closed)
-          closed_items = data_closed.get("items", [])
-
-          # Merge, avoiding duplicates by PR url
-          seen_urls = {pr["html_url"] for pr in items}
-          for pr in closed_items:
-              if pr["html_url"] not in seen_urls:
-                  items.append(pr)
-                  seen_urls.add(pr["html_url"])
-
-          # Group by repo, keep top 3 per repo
           repos = {}
-          for pr in items:
-              repo = pr["repository_url"].replace("https://api.github.com/repos/", "")
-              # Skip the profile repo itself
+          seen_urls = set()
+
+          def add_to_repo(repo, title, url):
               if repo == f"{username}/{username}":
-                  continue
+                  return
+              if url in seen_urls:
+                  return
               if repo not in repos:
                   repos[repo] = []
               if len(repos[repo]) < 3:
-                  repos[repo].append({
-                      "title": pr["title"],
-                      "url": pr["html_url"]
-                  })
+                  repos[repo].append({"title": title, "url": url})
+                  seen_urls.add(url)
 
-          # Build markdown
-          lines = []
-          for repo, prs in sorted(repos.items()):
-              lines.append(f"### [{repo}](https://github.com/{repo})")
-              for pr in prs:
-                  lines.append(f"- [{pr['title']}]({pr['url']})")
-              lines.append("")
+          query = urllib.parse.quote(f"type:pr author:{username}")
+          pr_url = f"https://api.github.com/search/issues?q={query}&per_page=100&sort=updated"
+          data = gh_request(pr_url)
+          for pr in data.get("items", []):
+              if "pull_request" not in pr:
+                  continue
+              repo = pr["repository_url"].replace("https://api.github.com/repos/", "")
+              is_pytorch = repo == "pytorch/pytorch"
+              merged_at = pr["pull_request"].get("merged_at")
+              if merged_at or (is_pytorch and pr.get("state") == "closed"):
+                  add_to_repo(repo, pr["title"], pr["html_url"])
 
-          block = "\n".join(lines).strip()
-          new_section = f"<!-- CONTRIBUTIONS:START -->\n{block}\n<!-- CONTRIBUTIONS:END -->"
+          try:
+              commit_query = urllib.parse.quote(f"co-author:{username}")
+              commit_url = f"https://api.github.com/search/commits?q={commit_query}&per_page=100&sort=author-date"
+              commit_data = gh_request(commit_url, accept="application/vnd.github.cloak-preview+json")
+              for item in commit_data.get("items", []):
+                  repo = item["repository"]["full_name"]
+                  title = item["commit"]["message"].split("\n")[0]
+                  html_url = item["html_url"]
+                  add_to_repo(repo, title, html_url)
+          except Exception as e:
+              print(f"Co-author search failed: {e}")
+
+          repo_stars = {}
+          for repo in repos:
+              try:
+                  info = gh_request(f"https://api.github.com/repos/{repo}")
+                  repo_stars[repo] = info.get("stargazers_count", 0)
+              except:
+                  repo_stars[repo] = 0
+
+          sorted_repos = sorted(repos.items(), key=lambda x: repo_stars.get(x[0], 0), reverse=True)
+
+          trimmed = []
+          total = 0
+          for repo, prs in sorted_repos:
+              if total >= 10:
+                  break
+              allowed = prs[:10 - total]
+              trimmed.append((repo, allowed))
+              total += len(allowed)
+          sorted_repos = trimmed
+
+          rows = []
+          for repo, prs in sorted_repos:
+              count = len(prs)
+              for i, pr in enumerate(prs):
+                  if i == 0:
+                      repo_cell = f'<td rowspan="{count}" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>{repo}</code></td>'
+                  else:
+                      repo_cell = ""
+                  pr_cell = f'<td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="{pr["url"]}">{pr["title"]}</a></td>'
+                  rows.append(f"<tr>{repo_cell}{pr_cell}</tr>")
+
+          table = (
+              '<table style="width: 100%; border-collapse: collapse;">\n'
+              '<thead><tr>'
+              '<th style="padding: 12px 16px; border: 1px solid #30363d; text-align: left;">Repository</th>'
+              '<th style="padding: 12px 16px; border: 1px solid #30363d; text-align: left;">Contribution</th>'
+              '</tr></thead>\n'
+              '<tbody>\n'
+              + "\n".join(rows) +
+              '\n</tbody>\n</table>'
+          )
+
+          new_section = f"<!-- CONTRIBUTIONS:START -->\n{table}\n<!-- CONTRIBUTIONS:END -->"
 
           with open("README.md", "r") as f:
               content = f.read()
@@ -94,7 +131,7 @@ jobs:
           with open("README.md", "w") as f:
               f.write(updated)
 
-          print("README updated successfully!")
+          print(f"README updated with {sum(len(v) for v in repos.values())} contributions across {len(repos)} repos!")
           EOF
 
       - name: Commit and push changes
