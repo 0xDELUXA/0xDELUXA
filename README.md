@@ -16,8 +16,8 @@
 <tr><td rowspan="1" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>huggingface/accelerate</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/huggingface/accelerate/pull/3962">Fix: Conditionally import `torch.distributed.algorithms.join` in `accelerator.py`</a></td></tr>
 <tr><td rowspan="2" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>deepbeepmeep/Wan2GP</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/deepbeepmeep/Wan2GP/pull/1518">Update `AMD-INSTALLATION.md`</a></td></tr>
 <tr><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/deepbeepmeep/Wan2GP/pull/1491">Revise AMD installation guide</a></td></tr>
-<tr><td rowspan="1" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>ROCm/TheRock</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/ROCm/TheRock/pull/3416">Correct `gfx1201X` to `gfx120X` in CI workflow descriptions</a></td></tr>
-<tr><td rowspan="1" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>ROCm/aiter</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/ROCm/aiter/pull/2621">[TRITON] Add FP8 support for gfx1200/gfx1201</a></td></tr>
+<tr><td rowspan="2" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>ROCm/TheRock</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/ROCm/TheRock/pull/5371">Fix typo in RELEASES.md</a></td></tr>
+<tr><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/ROCm/TheRock/pull/3416">Correct `gfx1201X` to `gfx120X` in CI workflow descriptions</a></td></tr>
 </tbody>
 </table>
 <!-- CONTRIBUTIONS:END -->
