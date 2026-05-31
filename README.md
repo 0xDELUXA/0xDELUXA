@@ -21,9 +21,9 @@
 <tr><td rowspan="2" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>ROCm/aiter</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/ROCm/aiter/pull/2621">[TRITON] Add FP8 support for gfx1200/gfx1201</a></td></tr>
 <tr><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/ROCm/aiter/commit/b4b75165fbd2456dfd0f074c5b2ef91bc87d97e5">[Triton] Flash Attention Triton Windows build support (#2433)</a></td></tr>
 <tr><td rowspan="1" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>JamePeng/llama-cpp-python</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/JamePeng/llama-cpp-python/pull/130">Add Windows ROCm build instructions to HIP (ROCm) section</a></td></tr>
-<tr><td rowspan="3" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>patientx-cfz/comfyui-rocm</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/patientx-cfz/comfyui-rocm/pull/35">Remove gfx908 and gfx90a from unsupported architectures by bnb</a></td></tr>
+<tr><td rowspan="3" style="padding: 14px 16px; vertical-align: middle; font-size: 13px; border: 1px solid #30363d; white-space: nowrap;"><code>patientx-cfz/comfyui-rocm</code></td><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/patientx-cfz/comfyui-rocm/pull/54">Update bnb wheel URL for ROCm 7.14 and enable gfx900/gfx906</a></td></tr>
+<tr><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/patientx-cfz/comfyui-rocm/pull/35">Remove gfx908 and gfx90a from unsupported architectures by bnb</a></td></tr>
 <tr><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/patientx-cfz/comfyui-rocm/pull/32">Update bitsandbytes arch skip list</a></td></tr>
-<tr><td style="padding: 14px 16px; border: 1px solid #30363d;"><a href="https://github.com/patientx-cfz/comfyui-rocm/pull/25">Improve wording</a></td></tr>
 </tbody>
 </table>
 <!-- CONTRIBUTIONS:END -->
